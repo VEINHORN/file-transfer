@@ -4,17 +4,14 @@
 -export([main/1]).
 
 main(_) ->
-  {ok, Socket} = gen_tcp:connect(?HOST, ?PORT, [binary, {packet, 4}, {active, false}]),
+  {ok, Socket} = gen_tcp:connect(?HOST, ?PORT, ?OPTIONS),
   command(Socket).
 
 command(Socket) ->
   case io:get_line("Enter command: ") of
     Data ->
       gen_tcp:send(Socket, Data),
-      [Offset, Filename] = wait_for_file_info(Socket),
-      io:format("~B ~p", [Offset, Filename]),
-      send_file(Socket, Filename, Offset),
-      io:format("File was succsesfully sended."),
+      wait_for_file_info(Socket),
       command(Socket)
   end.
 
@@ -24,22 +21,24 @@ send_file(Socket, Filename, Offset) ->
       send_file_binary(Socket, IoDevice, Offset);
     {error, enoent} ->
       io:format("File does not exist~n"),
-      gen_tcp:send(Socket, <<0:32/integer>>)
+      gen_tcp:send(Socket, <<0:8/integer>>)
   end.
 
 send_file_binary(Socket, IoDevice, Offset) ->
-  case file:pread(IoDevice, Offset, 1000) of
+  case file:pread(IoDevice, Offset, ?CHUNK_SIZE) of
     {ok, Data} ->
-      io:format("~B bytes sent.", [Offset + 1000]),
-      gen_tcp:send(Socket, <<1:32/integer, Data/binary>>),
-      send_file_binary(Socket, IoDevice, Offset + 1000);
+      io:format("~B bytes sent.~n", [Offset + ?CHUNK_SIZE]),
+      gen_tcp:send(Socket, <<1:8/integer, Data/binary>>),
+      send_file_binary(Socket, IoDevice, Offset + ?CHUNK_SIZE);
     eof ->
-      io:format("File sent."),
-      gen_tcp:send(Socket, <<2:32/integer>>) % 2 - uploading is done
+      io:format("File sent.~n"),
+      gen_tcp:send(Socket, <<2:8/integer>>) % 2 - uploading is done
   end.
 
 wait_for_file_info(Socket) ->
-  case gen_tcp:recv(Socket, 0) of
+  case gen_tcp:recv(Socket, 0, ?TIMEOUT) of
     {ok, <<Offset:32/integer, Filename/binary>>} ->
-      [Offset, binary_to_list(Filename)]
+      send_file(Socket, binary_to_list(Filename), Offset);
+    {error, timeout} ->
+      ok
   end.

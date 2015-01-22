@@ -21,20 +21,28 @@ handle(Socket) ->
       io:format("~s", [Packet]),
       handle(Socket);
     {ok, <<"UPLOAD ", Packet/binary>>} ->
-      io:format("~p", [Packet]),
       Filename = delete_n(binary_to_list(Packet)),
       Offset = filelib:file_size("server/" ++ Filename),
       gen_tcp:send(Socket, [<<Offset:32/integer>>, Filename]),
-      io:format("file was succesfully received."),
+      {ok, IoDevice} = file:open("server/" ++ Filename, [append]),
+      wait_for_file(Socket, IoDevice, Offset),
       handle(Socket);
-    {<<Flag:32/integer, Packet/binary>>} ->
-      io:format("wait for file");
-    {<<Flag:32/integer>>} ->
-      io:format("~B file received", [Flag]);
     {error, closed} ->
-      handle(Socket)
-   % _ ->
-   %   handle(Socket)
+      handle(Socket);
+    _ ->
+      ok
+  end.
+
+wait_for_file(Socket, IoDevice, Offset) ->
+  case gen_tcp:recv(Socket, 0) of
+    {ok, <<1:8/integer, Packet/binary>>} ->
+      io:format("wait for file~n"),
+      file:write(IoDevice, Packet),
+      wait_for_file(Socket, IoDevice, Offset);
+    {ok, <<0:8/integer>>} ->
+      io:format("file not found.~n");
+    {ok, <<2:8/integer>>} ->
+      io:format("file received.~n")
   end.
 
 delete_n(Str) ->
