@@ -1,0 +1,3 @@
+-define(PORT, 3333).
+-define(OPTIONS, [binary, {packet, 4}, {active, false}]).
+-define(HOST, localhost).
