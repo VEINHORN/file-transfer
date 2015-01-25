@@ -11,8 +11,12 @@ command(Socket) ->
   case io:get_line("Enter command: ") of
     Data ->
       gen_tcp:send(Socket, Data),
-      wait_for_command(Socket),
-      command(Socket)
+      case wait_for_command(Socket) of
+        exit ->
+          ok;
+        _ ->
+          command(Socket)
+      end
   end.
 
 switch_command(Socket, Filename, Offset, Command) ->
@@ -41,6 +45,9 @@ wait_for_command(Socket) ->
   case gen_tcp:recv(Socket, 0, ?TIMEOUT) of
     {ok, <<Offset:32/integer, Command:8/integer, Filename/binary>>} ->
       switch_command(Socket, binary_to_list(Filename), Offset, Command);
+    {error, closed} ->
+      io:format("You exited."),
+      exit;
     {error, timeout} ->
       ok
   end.

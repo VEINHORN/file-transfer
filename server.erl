@@ -28,6 +28,8 @@ handle(Socket) ->
       {ok, IoDevice} = file:open(?SERVER_FOLDER ++ Filename, [append]),
       wait_for_file(Socket, IoDevice),
       handle(Socket);
+    {ok, <<"EXIT\n">>} ->
+      gen_tcp:close(Socket);
     {error, closed} ->
       handle(Socket);
     _ ->
