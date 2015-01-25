@@ -1,7 +1,7 @@
 -define(PORT, 3333).
 -define(OPTIONS, [binary, {packet, 4}, {active, false}]).
 -define(HOST, localhost).
--define(CHUNK_SIZE, 5000).
+-define(CHUNK_SIZE, 50000).
 -define(TIMEOUT, 3000).
 -define(SERVER_FOLDER, "server/").
 -define(CLIENT_FOLDER, "client/").
