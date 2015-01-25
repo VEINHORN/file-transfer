@@ -20,9 +20,9 @@ switch_command(Socket, Filename, Offset, Command) ->
     ?UPLOAD ->
       utils:send_file(Socket, Filename, Offset, ?CLIENT_FOLDER);
     ?DOWNLOAD ->
-      ClientOffset = filelib:file_size("client/" ++ Filename),
+      ClientOffset = filelib:file_size(?CLIENT_FOLDER ++ Filename),
       gen_tcp:send(Socket, <<?APPROVEMENT:8/integer, ClientOffset:32/integer>>),
-      {ok, IoDevice} = file:open("client/" ++ Filename, [append]),
+      {ok, IoDevice} = file:open(?CLIENT_FOLDER ++ Filename, [append]),
       wait_for_file(Socket, IoDevice)
   end.
 

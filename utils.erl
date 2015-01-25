@@ -7,7 +7,7 @@ delete_n(Str) ->
 
 get_file_info(Packet) ->
   Filename = delete_n(binary_to_list(Packet)),
-  [Filename, filelib:file_size("server/" ++ Filename)].
+  [Filename, filelib:file_size(?SERVER_FOLDER ++ Filename)].
 
 send_file(Socket, Filename, Offset, HostFolder) ->
   case file:open(HostFolder ++ Filename, [read, binary]) of

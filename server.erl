@@ -25,7 +25,7 @@ handle(Socket) ->
     {ok, <<"UPLOAD ", Packet/binary>>} ->
       [Filename, Offset] = utils:get_file_info(Packet),
       gen_tcp:send(Socket, [<<Offset:32/integer, ?UPLOAD:8/integer>>, Filename]),
-      {ok, IoDevice} = file:open("server/" ++ Filename, [append]),
+      {ok, IoDevice} = file:open(?SERVER_FOLDER ++ Filename, [append]),
       wait_for_file(Socket, IoDevice),
       handle(Socket);
     {error, closed} ->
