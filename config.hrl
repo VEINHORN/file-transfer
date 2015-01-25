@@ -1,5 +1,6 @@
 -define(PORT, 3333).
 -define(OPTIONS, [binary, {packet, 4}, {active, false}]).
+%-define(HOST, "178.62.137.243").
 -define(HOST, localhost).
 -define(CHUNK_SIZE, 50000).
 -define(TIMEOUT, 3000).

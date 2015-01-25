@@ -8,12 +8,13 @@ main(_) ->
 
 listen() ->
   {ok, LSock} = gen_tcp:listen(?PORT, ?OPTIONS),
-  accept(LSock).
+  spawn(fun() -> accept(LSock) end),
+  timer:sleep(infinity).
 
 accept(LSock) ->
   {ok, Sock} = gen_tcp:accept(LSock),
-  handle(Sock),
-  accept(LSock).
+  spawn(fun() -> accept(LSock) end),
+  handle(Sock).
 
 handle(Socket) ->
   case gen_tcp:recv(Socket, 0) of
