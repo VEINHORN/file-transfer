@@ -27,7 +27,7 @@ handle(Socket) ->
       [Filename, Offset] = utils:get_file_info(Packet),
       gen_tcp:send(Socket, [<<Offset:32/integer, ?UPLOAD:8/integer>>, Filename]),
       {ok, IoDevice} = file:open(?SERVER_FOLDER ++ Filename, [append]),
-      wait_for_file(Socket, IoDevice),
+      utils:wait_for_file(Socket, IoDevice),
       handle(Socket);
     {ok, <<"EXIT\n">>} ->
       gen_tcp:close(Socket);
@@ -44,15 +44,4 @@ wait_for_approvement(Socket, Filename) ->
       ok;
     {error, timeout} ->
       ok
-  end.
-
-wait_for_file(Socket, IoDevice) ->
-  case gen_tcp:recv(Socket, 0) of
-    {ok, <<?SENDING:8/integer, Packet/binary>>} ->
-      file:write(IoDevice, Packet),
-      wait_for_file(Socket, IoDevice);
-    {ok, <<?FILE_NOT_EXIST:8/integer>>} ->
-      io:format("File not found.~n");
-    {ok, <<?DOWNLOADED:8/integer>>} ->
-      io:format("File received.~n")
   end.

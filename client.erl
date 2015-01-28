@@ -27,18 +27,7 @@ switch_command(Socket, Filename, Offset, Command) ->
       ClientOffset = filelib:file_size(?CLIENT_FOLDER ++ Filename),
       gen_tcp:send(Socket, <<?APPROVEMENT:8/integer, ClientOffset:32/integer>>),
       {ok, IoDevice} = file:open(?CLIENT_FOLDER ++ Filename, [append]),
-      wait_for_file(Socket, IoDevice)
-  end.
-
-wait_for_file(Socket, IoDevice) ->
-  case gen_tcp:recv(Socket, 0) of
-    {ok, <<?SENDING:8/integer, Packet/binary>>} ->
-      file:write(IoDevice, Packet),
-      wait_for_file(Socket, IoDevice);
-    {ok, <<?DOWNLOADED:8/integer>>} ->
-      io:format("File was downloaded.~n");
-    {ok, <<?FILE_NOT_EXIST:8/integer>>} ->
-      io:format("File does not exist.~n")
+      utils:wait_for_file(Socket, IoDevice)
   end.
 
 wait_for_command(Socket) ->

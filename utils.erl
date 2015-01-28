@@ -1,6 +1,6 @@
 -module(utils).
 -include("config.hrl").
--export([delete_n/1, get_file_info/1, send_file/4, send_file_binary/3]).
+-export([delete_n/1, get_file_info/1, send_file/4, send_file_binary/3, wait_for_file/2]).
 
 delete_n(Str) ->
   string:substr(Str, 1, string:len(Str) - 1).
@@ -27,4 +27,15 @@ send_file_binary(Socket, IoDevice, Offset) ->
     eof ->
       io:format("File was sent.~n"),
       gen_tcp:send(Socket, <<?DOWNLOADED:8/integer>>)
+  end.
+
+wait_for_file(Socket, IoDevice) ->
+  case gen_tcp:recv(Socket, 0) of
+    {ok, <<?SENDING:8/integer, Packet/binary>>} ->
+      file:write(IoDevice, Packet),
+      wait_for_file(Socket, IoDevice);
+    {ok, <<?DOWNLOADED:8/integer>>} ->
+      io:format("File was downloaded.~n");
+    {ok, <<?FILE_NOT_EXIST:8/integer>>} ->
+      io:format("File does not exist.~n")
   end.
