@@ -13,6 +13,9 @@ DOWNLOAD filename(with extension)
 ##UPLOAD
 UPLOAD filename(with extension)
 
+##EXIT(on client side)
+Just type EXIT.
+
 ##EXAMPLES
 1. DOWNLOAD movie.mp4
 2. UPLOAD movie.mp4
