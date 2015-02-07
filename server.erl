@@ -32,7 +32,7 @@ handle(Socket) ->
     {ok, <<"EXIT\n">>} ->
       gen_tcp:close(Socket);
     {error, closed} ->
-      handle(Socket);
+      ok;      
     _ ->
       ok
   end.
